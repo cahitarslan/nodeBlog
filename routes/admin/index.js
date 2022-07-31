@@ -26,7 +26,7 @@ router.post('/categories', (req, res) => {
 });
 
 router.delete('/categories/:id', (req, res) => {
-    Category.remove({ _id: req.params.id }).then(() => {
+    Category.deleteOne({ _id: req.params.id }).then(() => {
         res.redirect('/admin/categories');
     });
 });
@@ -41,7 +41,7 @@ router.get('/posts', (req, res) => {
 });
 
 router.delete('/posts/:id', (req, res) => {
-    Post.remove({ _id: req.params.id }).then(() => {
+    Post.deleteOne({ _id: req.params.id }).then(() => {
         res.redirect('/admin/posts');
     });
 });

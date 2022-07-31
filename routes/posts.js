@@ -18,19 +18,40 @@ router.get('/:id', (req, res) => {
         .lean()
         .populate({ path: 'author', model: User })
         .then((post) => {
-            Category.find({}).then((categories) => {
-                Post.find({})
-                    .populate({ path: 'author', model: User })
-                    .sort({ $natural: -1 })
-                    .then((posts) => {
-                        const data = {
-                            post: post,
-                            categories: categories.map((category) => category.toJSON()),
-                            posts: posts.map((post) => post.toJSON()),
-                        };
-                        res.render('site/post', { categories: data.categories, post: data.post, posts: data.posts });
-                    });
-            });
+            Category.aggregate([
+                {
+                    $lookup: {
+                        from: 'posts',
+                        localField: '_id',
+                        foreignField: 'category',
+                        as: 'posts',
+                    },
+                },
+                {
+                    $project: {
+                        _id: 1,
+                        name: 1,
+                        num_of_posts: {
+                            $size: '$posts',
+                        },
+                    },
+                },
+            ])
+
+                .sort({ name: 1 })
+                .then((categories) => {
+                    Post.find({})
+                        .populate({ path: 'author', model: User })
+                        .sort({ $natural: -1 })
+                        .then((posts) => {
+                            const data = {
+                                post: post,
+                                categories: categories,
+                                posts: posts.map((post) => post.toJSON()),
+                            };
+                            res.render('site/post', { categories: data.categories, post: data.post, posts: data.posts });
+                        });
+                });
         });
 });
 
