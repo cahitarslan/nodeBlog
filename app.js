@@ -1,7 +1,6 @@
 const express = require('express');
 const { create } = require('express-handlebars');
-const generateDate = require('./helpers/generateDate').generateDate;
-const limit = require('./helpers/limit').limit;
+const { generateDate, limit, truncate } = require('./helpers/hbs');
 const app = express();
 const port = 3000;
 const hostname = '127.0.0.1';
@@ -29,13 +28,6 @@ app.use(
     })
 );
 
-// Flash - Message Middleware
-app.use((req, res, next) => {
-    res.locals.sessionFlash = req.session.sessionFlash;
-    delete req.session.sessionFlash;
-    next();
-});
-
 app.use(fileUpload());
 
 app.use(express.static('public'));
@@ -48,6 +40,7 @@ const hbs = create({
     helpers: {
         generateDate,
         limit,
+        truncate,
     },
 });
 
@@ -73,6 +66,13 @@ app.use((req, res, next) => {
             displayLink: false,
         };
     }
+    next();
+});
+
+// Flash - Message Middleware
+app.use((req, res, next) => {
+    res.locals.sessionFlash = req.session.sessionFlash;
+    delete req.session.sessionFlash;
     next();
 });
 
