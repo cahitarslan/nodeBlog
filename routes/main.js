@@ -13,37 +13,44 @@ router.get('/', (req, res) => {
 }); */
 
 router.get('/blog', (req, res) => {
+    const postPerPage = 4;
+    const page = req.query.page || 1;
+
     Post.find({})
         .populate({ path: 'author', model: User })
         .sort({ $natural: -1 })
+        .skip(postPerPage * page - postPerPage)
+        .limit(postPerPage)
         .then((posts) => {
-            Category.aggregate([
-                {
-                    $lookup: {
-                        from: 'posts',
-                        localField: '_id',
-                        foreignField: 'category',
-                        as: 'posts',
-                    },
-                },
-                {
-                    $project: {
-                        _id: 1,
-                        name: 1,
-                        num_of_posts: {
-                            $size: '$posts',
+            Post.countDocuments().then((postCount) => {
+                Category.aggregate([
+                    {
+                        $lookup: {
+                            from: 'posts',
+                            localField: '_id',
+                            foreignField: 'category',
+                            as: 'posts',
                         },
                     },
-                },
-            ])
-                .sort({ name: 1 })
-                .then((categories) => {
-                    const data = {
-                        posts: posts.map((post) => post.toJSON()),
-                        categories: categories,
-                    };
-                    res.render('site/blog', { categories: data.categories, posts: data.posts });
-                });
+                    {
+                        $project: {
+                            _id: 1,
+                            name: 1,
+                            num_of_posts: {
+                                $size: '$posts',
+                            },
+                        },
+                    },
+                ])
+                    .sort({ name: 1 })
+                    .then((categories) => {
+                        const data = {
+                            posts: posts.map((post) => post.toJSON()),
+                            categories: categories,
+                        };
+                        res.render('site/blog', { categories: data.categories, posts: data.posts, current: parseInt(page), pages: Math.ceil(postCount / postPerPage) });
+                    });
+            });
         });
 });
 

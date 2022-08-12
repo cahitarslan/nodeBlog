@@ -1,6 +1,6 @@
 const express = require('express');
 const { create } = require('express-handlebars');
-const { generateDate, limit, truncate } = require('./helpers/hbs');
+const { generateDate, limit, truncate, paginate } = require('./helpers/hbs');
 const app = express();
 const port = 3000;
 const hostname = '127.0.0.1';
@@ -41,6 +41,7 @@ const hbs = create({
         generateDate,
         limit,
         truncate,
+        paginate,
     },
 });
 
@@ -79,10 +80,12 @@ app.use((req, res, next) => {
 const main = require('./routes/main');
 const posts = require('./routes/posts');
 const users = require('./routes/users');
+const contact = require('./routes/contact');
 const admin = require('./routes/admin/index');
 
 app.use('/posts', posts);
 app.use('/users', users);
+app.use('/contact', contact);
 app.use('/admin', admin);
 app.use('/', main);
 
